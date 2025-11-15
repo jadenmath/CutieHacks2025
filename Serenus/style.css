@@ -22,22 +22,81 @@ body, html { width: 100%; height: 100%; overflow-x: hidden; }
   z-index:0;
 }
 
-/* Content */
+/* Header Navigation */
+header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+  background-color: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #D988A0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  text-decoration: none;
+  transition: transform 0.3s;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+nav {
+  display: flex;
+  gap: 30px;
+}
+
+nav a {
+  color: #333333;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+nav a:hover {
+  color: #D988A0;
+}
+/* Main Content */
 .content {
   position: relative;
-  z-index:1;
+  z-index: 1;
   text-align: center;
-  color: #333333;
-  padding: 50px 20px;
+  padding: 60px 20px;
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 h1 {
-  font-size: 3rem;
+  font-size: 4rem;
   margin-bottom: 20px;
+  color: #333333;
   text-shadow: 0 2px 4px rgba(0,0,0,0.25);
 }
 
-p { font-size:1.2rem; color:#666666; margin-bottom:30px; }
+.tagline {
+  font-size: 1.3rem;
+  color: #666666;
+  margin-bottom: 30px;
+}
 
 button {
   background-color: #D988A0;
@@ -51,50 +110,123 @@ button {
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   transition: 0.3s;
 }
-button:hover { background-color: #E8AEB7; }
 
-/* Sections */
-section {
-  background-color: rgba(255,255,255,0.25);
-  border-radius: 15px;
-  padding: 20px;
-  margin: 20px auto;
+button:hover { 
+  background-color: #E8AEB7; 
+}
+
+/* Mood Dial Container */
+.mood-dial-container {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin: 30px auto;
+}
+
+/* Particle Canvas */
+#particle-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Mood Dial */
+.mood-dial {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 50px auto;
+  background: rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border: 8px solid #D988A0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Mood Options */
+.mood-option {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: rgba(217,136,160,0.8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 3px solid white;
+  text-align: center;
+}
+
+.mood-option:hover {
+  transform: scale(1.2);
+  background: #D988A0;
+}
+
+.mood-option.selected {
+  background: #E8AEB7;
+  transform: scale(1.3);
+  box-shadow: 0 0 20px rgba(217,136,160,0.8);
+}
+
+/* Position mood options around the dial */
+.mood-option:nth-child(1) { 
+  top: -40px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+}
+
+.mood-option:nth-child(2) { 
+  top: 50%; 
+  right: -40px; 
+  transform: translateY(-50%); 
+}
+
+.mood-option:nth-child(3) { 
+  bottom: -40px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+}
+
+.mood-option:nth-child(4) { 
+  top: 50%; 
+  left: -40px; 
+  transform: translateY(-50%); 
+}
+
+/* Current Mood Display */
+.current-mood {
+  margin-top: 40px;
+  font-size: 1.2rem;
+  color: #333333;
+  background: rgba(255,255,255,0.4);
+  padding: 15px 30px;
+  border-radius: 25px;
+  min-height: 50px;
+}
+
+.current-mood span {
+  color: #D988A0;
+  font-weight: bold;
+}
+/* AI Response Box */
+.ai-response-box {
+  margin-top: 20px;
+  width: 70%;
   max-width: 500px;
-}
-
-label { display:block; margin:10px 0 5px; font-weight:bold; color:#333333; }
-
-input, textarea, select {
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  margin-bottom:15px;
-  font-size:1rem;
-}
-
-/* Breathing Circle */
-#breathing-circle {
-  width:150px;
-  height:150px;
-  margin:20px auto;
-  background:#D988A0;
-  border-radius:50%;
-  animation: breathe 6s infinite;
-}
-
-/* Breathing Animation */
-@keyframes breathe {
-  0% { transform: scale(1); opacity:0.8; }
-  25% { transform: scale(1.2); opacity:1; }
-  50% { transform: scale(1); opacity:0.8; }
-  75% { transform: scale(0.8); opacity:0.6; }
-  100% { transform: scale(1); opacity:0.8; }
-}
-
-/* Footer */
-footer {
-  margin-top:50px;
-  color:#666666;
-  font-size:0.9rem;
+  padding: 20px;
+  background: rgba(255, 245, 248, 0.55);
+  backdrop-filter: blur(8px);
+  border-radius: 15px;
+  color: #4d3b3b;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }

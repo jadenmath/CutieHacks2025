@@ -1,30 +1,137 @@
-// Play background music
-function playBGM() {
-  const bgm = document.getElementById('bgm');
+// Particle System
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 400;
+canvas.height = 400;
+
+const particles = [];
+const particleCount = 50;
+const colors = ['#D988A0', '#E8AEB7', '#5CA4A9', '#F5A5C0'];
+
+class Particle {
+  constructor() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.size = Math.random() * 3 + 1;
+    this.speedX = Math.random() * 1 - 0.5;
+    this.speedY = Math.random() * 1 - 0.5;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+  }
+  
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    
+    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+  }
+  
+  draw() {
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+for (let i = 0; i < particleCount; i++) {
+  particles.push(new Particle());
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(particle => {
+    particle.update();
+    particle.draw();
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Background Music Toggle
+const bgm = document.getElementById('bgm');
+const musicBtn = document.getElementById('music-btn');
+let isPlaying = false;
+
+// Load saved music state
+const savedMusicState = localStorage.getItem('musicPlaying');
+if (savedMusicState === 'true') {
   bgm.play();
+  isPlaying = true;
+  musicBtn.textContent = 'Pause Music';
 }
 
-// Mood Check-In
-function showMoodMessage() {
-  const mood = document.getElementById('mood').value;
-  const result = document.getElementById('mood-result');
-  let msg = "";
-  switch(mood) {
-    case "happy": msg = "Great! Keep embracing positivity today! 🌸"; break;
-    case "sad": msg = "It's okay to feel down. Take a deep breath and be gentle with yourself."; break;
-    case "anxious": msg = "Try focusing on your breath. You are safe in this moment."; break;
-    case "tired": msg = "Rest is important. Take a short break or relax your mind."; break;
+function toggleBGM() {
+  if (isPlaying) {
+    bgm.pause();
+    musicBtn.textContent = 'Play Calm Music';
+    localStorage.setItem('musicPlaying', 'false');
+  } else {
+    bgm.play();
+    musicBtn.textContent = 'Pause Music';
+    localStorage.setItem('musicPlaying', 'true');
   }
-  result.innerText = msg;
+  isPlaying = !isPlaying;
 }
 
-// Micro Journaling (simple placeholder)
-function summarizeJournal() {
-  const journal = document.getElementById('journal').value;
-  const result = document.getElementById('journal-result');
-  if(journal.trim().length === 0){
-    result.innerText = "Write something first!";
-    return;
+// Mood Selection
+const moodOptions = document.querySelectorAll('.mood-option');
+const moodDisplay = document.getElementById('mood-display');
+
+// Load saved mood
+const savedMood = localStorage.getItem('currentMood');
+if (savedMood) {
+  const savedOption = document.querySelector(`[data-mood="${savedMood}"]`);
+  if (savedOption) {
+    savedOption.classList.add('selected');
+    moodDisplay.innerHTML = `Current mood: <span>${savedOption.dataset.label}</span>`;
   }
-  result.innerText = "Reflect on your feelings. Remember, small steps matter. 🌱";
+}
+
+moodOptions.forEach(option => {
+  option.addEventListener('click', function() {
+    // Remove previous selection
+    moodOptions.forEach(opt => opt.classList.remove('selected'));
+    
+    // Add selection to clicked option
+    this.classList.add('selected');
+    
+    const mood = this.dataset.mood;
+    const label = this.dataset.label;
+    
+    // Save mood to localStorage
+    localStorage.setItem('currentMood', mood);
+    
+    // Display current mood
+    moodDisplay.innerHTML = `Current mood: <span>${label}</span>`;
+    generateMoodResponse(mood);
+
+  });
+});
+// GEMINI MOOD RESPONSE SYSTEM
+async function generateMoodResponse(mood) {
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash"
+    });
+
+    const prompt = `
+You are a calming, supportive mental wellness assistant.
+The user's mood is: "${mood}".
+Give:
+1. ONE short, simple action the user can do right now (10–20 words).
+2. TWO gentle motivational sentences.
+Keep the tone soft, warm, supportive, and safe. No medical advice.
+    `;
+
+    document.getElementById("ai-response").textContent = "Thinking... 🌸";
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    document.getElementById("ai-response").textContent = text;
+  } catch (e) {
+    document.getElementById("ai-response").textContent =
+      "Unable to load calming guidance at the moment 💗";
+  }
 }
