@@ -9,6 +9,11 @@ interface GPUState {
 }
 
 let gpuState: GPUState | null = null;
+let interactionIntensity = 0;
+
+export function setBubbleInteractionIntensity(value: number) {
+  interactionIntensity = Math.min(1, Math.max(0, value));
+}
 
 // Breathing timing function
 function getBreathingPhase(t: number): number {
@@ -86,65 +91,105 @@ export async function initWebGPU(canvas: HTMLCanvasElement): Promise<() => void>
   const fragmentShaderCode = `
     struct Uniforms {
       info0: vec4f, // time, resolution.x, resolution.y, breathingPhase
-      info1: vec4f, // baseRadius, unused
+      info1: vec4f, // baseRadius, highlightAngle, highlightStrength, interaction
     }
 
     @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
+    fn remap(value: f32, minValue: f32, maxValue: f32) -> f32 {
+      return clamp((value - minValue) / (maxValue - minValue), 0.0, 1.0);
+    }
+
+    fn jellyHighlight(uv: vec2f, position: vec2f, size: f32) -> f32 {
+      let dist = length(uv - position);
+      return smoothstep(size, 0.0, dist);
+    }
 
     @fragment
     fn main(@builtin(position) fragCoord: vec4f) -> @location(0) vec4f {
       let time = uniforms.info0.x;
       let resolution = uniforms.info0.yz;
       let breathingPhase = uniforms.info0.w;
-      let baseRadius = uniforms.info1.x;
+  let baseRadius = uniforms.info1.x;
+  let highlightAngle = uniforms.info1.y;
+  let highlightStrength = uniforms.info1.z;
+  let interaction = uniforms.info1.w;
+
       let minDimension = min(resolution.x, resolution.y);
       let uv = (fragCoord.xy - resolution * 0.5) / minDimension;
-      let dist = length(uv);
-      
-      // Breathing animation
-      let breathScale = 0.9 + breathingPhase * 0.15;
+      let stretchedUV = vec2f(uv.x * 1.1, uv.y * 0.9);
+      let polar = vec2f(length(stretchedUV), atan2(stretchedUV.y, stretchedUV.x));
+
+      // Breathing scale for squishy motion
+  let breathScale = 0.85 + breathingPhase * 0.2 + interaction * 0.05;
       let radius = baseRadius * breathScale;
-      
-      // Main bubble - radial gradient
-      let bubbleIntensity = smoothstep(radius + 0.02, radius - 0.05, dist);
-      let bubbleColor = vec3f(0.48, 0.23, 0.93); // Purple
-      let bubbleAlpha = bubbleIntensity * 0.35 * max(0.0, 1.0 - dist / max(radius, 0.0001));
-      
-      // Bubble outline
-      let outlineWidth = 0.01;
-      let outline = smoothstep(outlineWidth, 0.0, abs(dist - radius));
-      let outlineColor = vec3f(0.48, 0.23, 0.93); // Purple
-      let outlineAlpha = outline * 0.8;
-      
-      // Aura - animated dashes
-      let auraRadius = radius + 0.1 + breathingPhase * 0.08;
-      let angle = atan2(uv.y, uv.x);
-      let numDashes = 16.0;
-      let dashPhase = fract((angle / (3.14159265 * 2.0) + time * 0.05) * numDashes);
-      let dashMask = smoothstep(0.3, 0.4, dashPhase) * smoothstep(0.7, 0.6, dashPhase);
-      
-      let auraDist = abs(dist - auraRadius);
-      let auraIntensity = smoothstep(0.03, 0.0, auraDist) * dashMask;
-      let auraColor = vec3f(0.98, 0.45, 0.09); // Orange
-      let auraAlpha = auraIntensity * (0.4 + breathingPhase * 0.3);
-      
-      // Combine layers
-      var finalColor = vec3f(0.0);
-      var finalAlpha = 0.0;
-      
-      // Add bubble
-      finalColor += bubbleColor * bubbleAlpha;
-      finalAlpha += bubbleAlpha;
-      
-      // Add outline
-      finalColor += outlineColor * outlineAlpha * (1.0 - finalAlpha);
-      finalAlpha += outlineAlpha * (1.0 - finalAlpha);
-      
-      // Add aura
-      finalColor += auraColor * auraAlpha * (1.0 - finalAlpha);
-      finalAlpha += auraAlpha * (1.0 - finalAlpha);
-      
-      return vec4f(finalColor, finalAlpha);
+      let softness = 0.2;
+
+      // Subtle jelly wobble using sine ripples
+      let wobble = sin((stretchedUV.x + stretchedUV.y) * 12.0 + time * 1.6) * 0.018;
+      let dist = polar.x + wobble;
+
+      // Body gradient inspired by jelly switch colors
+  let gradientDir = normalize(vec2f(0.3, 0.7));
+  let gradientT = remap(dot(stretchedUV, gradientDir), -0.55, 0.45);
+  let coolColor = vec3f(0.1, 0.75, 0.98);
+  let warmColor = vec3f(1.0, 0.36, 0.82);
+      let bodyColor = mix(warmColor, coolColor, gradientT);
+
+      // Core body intensity
+      let body = smoothstep(radius + softness, radius - softness, dist);
+
+      // Soft inner shadow for depth
+  let innerShadow = smoothstep(radius * 0.8, radius * 0.2, dist);
+
+      // Caustic sparkle pattern traveling diagonally
+      let caustics = sin((stretchedUV.x * 18.0 + stretchedUV.y * 22.0) - time * 3.0) * 0.5 + 0.5;
+      let causticMask = smoothstep(0.2, 0.8, body);
+
+      // Highlight sweep similar to jelly switch sparkle
+      let highlightDir = vec2f(cos(highlightAngle), sin(highlightAngle));
+      let highlightCenter = highlightDir * 0.25;
+  let highlight = jellyHighlight(uv, highlightCenter, 0.35 - interaction * 0.05);
+
+      // Secondary micro highlight
+      let microHighlight = jellyHighlight(uv, highlightCenter + vec2f(0.05, -0.08), 0.18);
+
+  // Hemisphere shine to add thickness
+  let hemiHighlight = pow(max(0.0, 1.0 - length(stretchedUV * vec2f(1.0, 1.3))), 2.0);
+
+      // Traveling sheen band
+  let sweepPos = fract(time * (0.25 + interaction * 0.15));
+  let sweep = smoothstep(sweepPos + 0.2, sweepPos - 0.15, remap(stretchedUV.y, -0.6, 0.6));
+
+  // Fresnel rim for glassy edge
+  let normalZ = sqrt(max(0.0, 1.0 - dot(stretchedUV, stretchedUV)));
+  let fresnel = pow(1.0 - clamp(normalZ, 0.0, 1.0), 2.2);
+
+      // Rim glow for edges
+      let rim = smoothstep(radius + 0.025, radius - 0.02, polar.x);
+  let rimColor = mix(vec3f(1.0, 0.8, 1.0), vec3f(0.4, 0.9, 1.0), gradientT);
+
+      // Ambient glow aura
+      let auraRadius = radius + 0.08;
+      let aura = smoothstep(auraRadius + 0.05, auraRadius - 0.02, polar.x);
+
+      var color = vec3f(0.0);
+      color += bodyColor * body;
+      color -= vec3f(0.12, 0.08, 0.2) * innerShadow * 0.35;
+  color += rimColor * rim * 0.85;
+  let boostedHighlight = mix(highlightStrength, 1.1, interaction);
+  color += vec3f(0.98, 0.98, 1.0) * highlight * boostedHighlight * 1.2;
+  color += vec3f(1.0, 0.92, 0.85) * microHighlight * boostedHighlight * 0.8;
+  color += vec3f(1.0, 0.96, 0.92) * sweep * 0.55;
+  color += vec3f(0.85, 0.95, 1.2) * fresnel * 0.65;
+  color += vec3f(1.0, 0.87, 0.92) * hemiHighlight * 0.5;
+      color += vec3f(1.0, 0.8, 0.6) * caustics * causticMask * 0.25;
+      color += vec3f(0.6, 0.7, 1.0) * aura * 0.3;
+
+  let alpha = body + rim * 0.7 + aura * 0.35;
+      alpha = clamp(alpha, 0.0, 1.0);
+
+      return vec4f(color, alpha);
     }
   `;
 
@@ -247,15 +292,18 @@ export function runBreathingAnimation(canvas: HTMLCanvasElement, _cleanup: () =>
     const breathingPhase = getBreathingPhase(currentTime);
 
     // Update uniforms
+    const highlightAngle = currentTime * 0.9;
+    const highlightStrength = 0.55 + 0.25 * Math.sin(breathingPhase * Math.PI);
+
     const uniformData = new Float32Array([
       currentTime,
       canvas.width,
       canvas.height,
       breathingPhase,
-      0.35, // base radius
-      0,
-      0,
-      0,
+      0.34, // base radius for jelly profile
+      highlightAngle,
+      highlightStrength,
+      interactionIntensity,
     ]);
 
     gpuState.device.queue.writeBuffer(gpuState.uniformBuffer, 0, uniformData);

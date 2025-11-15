@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { initWebGPU, runBreathingAnimation } from "../utils/breathingAnimation";
+import {
+  initWebGPU,
+  runBreathingAnimation,
+  setBubbleInteractionIntensity,
+} from "../utils/breathingAnimation";
 
 interface BreathingBubbleProps {
   onClick?: () => void;
@@ -10,6 +14,28 @@ const BreathingBubble: React.FC<BreathingBubbleProps> = ({ onClick }) => {
   const [isWebGPUSupported, setIsWebGPUSupported] = useState<boolean | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const cleanupRef = useRef<(() => void) | null>(null);
+
+  const updateInteraction = (
+    clientX: number,
+    clientY: number,
+    rectOverride?: DOMRect,
+  ) => {
+  const canvas = canvasRef.current;
+  const rect = rectOverride ?? canvas?.getBoundingClientRect();
+  if (!rect) return;
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    const radius = Math.min(rect.width, rect.height) / 2;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const intensity = Math.max(0, Math.min(1, 1 - distance / radius));
+    setBubbleInteractionIntensity(intensity);
+  };
+
+  const resetInteraction = () => {
+    setBubbleInteractionIntensity(0);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,8 +98,30 @@ const BreathingBubble: React.FC<BreathingBubbleProps> = ({ onClick }) => {
       <div
         className="relative flex items-center justify-center cursor-pointer"
         onClick={onClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onPointerEnter={(event) => {
+          setIsHovered(true);
+          updateInteraction(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
+        }}
+        onPointerMove={(event) =>
+          updateInteraction(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect())
+        }
+        onPointerLeave={() => {
+          setIsHovered(false);
+          resetInteraction();
+        }}
+        onTouchMove={(event) => {
+          const touch = event.touches[0];
+          if (touch)
+            updateInteraction(
+              touch.clientX,
+              touch.clientY,
+              event.currentTarget.getBoundingClientRect(),
+            );
+        }}
+        onTouchEnd={() => {
+          setIsHovered(false);
+          resetInteraction();
+        }}
       >
         <div
           className={`
@@ -146,8 +194,23 @@ const BreathingBubble: React.FC<BreathingBubbleProps> = ({ onClick }) => {
     <div
       className="relative flex items-center justify-center cursor-pointer group"
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onPointerEnter={(event) => {
+        setIsHovered(true);
+        updateInteraction(event.clientX, event.clientY);
+      }}
+      onPointerMove={(event) => updateInteraction(event.clientX, event.clientY)}
+      onPointerLeave={() => {
+        setIsHovered(false);
+        resetInteraction();
+      }}
+      onTouchMove={(event) => {
+        const touch = event.touches[0];
+        if (touch) updateInteraction(touch.clientX, touch.clientY);
+      }}
+      onTouchEnd={() => {
+        setIsHovered(false);
+        resetInteraction();
+      }}
     >
       <canvas
         ref={canvasRef}
