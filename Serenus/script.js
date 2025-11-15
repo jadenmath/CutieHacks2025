@@ -104,6 +104,11 @@ moodOptions.forEach(option => {
     
     // Display current mood
     moodDisplay.innerHTML = `Current mood: <span>${label}</span>`;
+    // Scroll to AI response smoothly
+    document.getElementById('ai-response').scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'center' 
+    });
     generateMoodResponse(mood);
 
   });
@@ -116,13 +121,17 @@ async function generateMoodResponse(mood) {
     });
 
     const prompt = `
-You are a calming, supportive mental wellness assistant.
-The user's mood is: "${mood}".
-Give:
-1. ONE short, simple action the user can do right now (10–20 words).
-2. TWO gentle motivational sentences.
-Keep the tone soft, warm, supportive, and safe. No medical advice.
+You are a calming, supportive mental wellness companion.
+The user is feeling: "${mood}".
+
+Write a short, warm paragraph (3-4 sentences) that:
+- Acknowledges their feeling with empathy
+- Offers one gentle, actionable suggestion they can try right now
+- Ends with encouraging words
+
+Keep it conversational, like talking to a friend. No numbered lists, no bold text, no medical advice.
     `;
+    
 
     document.getElementById("ai-response").textContent = "Thinking... 🌸";
 

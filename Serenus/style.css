@@ -40,7 +40,7 @@ header {
   gap: 15px;
   font-size: 1.8rem;
   font-weight: bold;
-  color: #D988A0;
+  color: #333333;
   text-shadow: 0 2px 4px rgba(0,0,0,0.2);
   text-decoration: none;
   transition: transform 0.3s;
@@ -94,7 +94,7 @@ h1 {
 
 .tagline {
   font-size: 1.3rem;
-  color: #666666;
+  color: #333333;
   margin-bottom: 30px;
 }
 
@@ -217,16 +217,27 @@ button:hover {
 }
 /* AI Response Box */
 .ai-response-box {
-  margin-top: 20px;
-  width: 70%;
-  max-width: 500px;
-  padding: 20px;
-  background: rgba(255, 245, 248, 0.55);
-  backdrop-filter: blur(8px);
-  border-radius: 15px;
+  margin: 40px auto 60px;
+  width: 80%;
+  max-width: 600px;
+  padding: 30px;
+  background: rgba(255, 245, 248, 0.75);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 2px solid rgba(217, 136, 160, 0.3);
   color: #4d3b3b;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  font-size: 1.15rem;
+  line-height: 1.8;
+  text-align: left;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: slideDown 0.6s ease forwards;
+}
+
+@keyframes slideDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
