@@ -67,10 +67,17 @@ nav a {
   font-size: 1.1rem;
   font-weight: 500;
   transition: color 0.3s;
+  padding: 8px 12px;
+  border-radius: 5px;
 }
 
 nav a:hover {
   color: #D988A0;
+}
+
+nav a.active {
+  color: white;
+  background-color: #D988A0;
 }
 /* Main Content */
 .content {

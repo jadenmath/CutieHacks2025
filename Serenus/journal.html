@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serenus - Journal</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="journal-style.css">
+
+<!-- Gemini Import -->
+<script type="module">
+import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+window.genAI = new GoogleGenerativeAI("AIzaSyDEDREL4QBLA5l7xOLTxmS4ut5y6k9dEz4");
+</script>
+</head>
+<body>
+<!-- Background Video -->
+<video autoplay muted loop playsinline id="bg-video">
+<source src="assets/sakura.mp4" type="video/mp4">
+</video>
+<div id="overlay"></div>
+
+<!-- Background Music -->
+<audio id="bgm" loop>
+<source src="assets/calm-bgm.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Header Navigation -->
+<header>
+<a href="index.html" class="logo">
+<img src="assets/cherry-blossom.png" class="logo-img">
+Serenus
+</a>
+<nav>
+<a href="index.html">Home</a>
+<a href="journal.html" class="active">Journal</a>
+<a href="breathe.html">Breathe</a>
+</nav>
+</header>
+
+<div class="content">
+<h1>Your Journal</h1>
+<p class="tagline">A safe space to express your thoughts and feelings</p>
+
+<!-- Journal Entry Form -->
+<div class="journal-container">
+<div class="journal-form-section">
+<h2>Write Your Entry</h2>
+
+<!-- Mood Selection -->
+<div class="mood-selection">
+<p class="mood-label">How are you feeling?</p>
+<div class="mood-buttons">
+<button class="mood-btn" data-mood="happy" onclick="selectMood('happy')">😊 Happy</button>
+<button class="mood-btn" data-mood="calm" onclick="selectMood('calm')">😌 Calm</button>
+<button class="mood-btn" data-mood="anxious" onclick="selectMood('anxious')">😰 Anxious</button>
+<button class="mood-btn" data-mood="sad" onclick="selectMood('sad')">😔 Sad</button>
+</div>
+<p id="selected-mood" class="selected-mood-display"></p>
+</div>
+
+<textarea id="journal-input" rows="6" placeholder="Write your thoughts here..."></textarea>
+<div class="form-actions">
+<button onclick="saveEntry()" class="btn-primary">Save Entry</button>
+<button onclick="clearInput()" class="btn-secondary">Clear</button>
+</div>
+<p id="save-message"></p>
+
+<!-- AI Insight Box -->
+<div id="ai-insight-box" class="ai-insight-box" style="display:none;">
+<h3>💭 Thoughts & Guidance</h3>
+<p id="ai-insight-text">Getting your personalized insights...</p>
+</div>
+</div>
+
+<!-- Journal Entries Timeline -->
+<div class="entries-section">
+<h2>Your Entries</h2>
+<div id="entries-container" class="entries-timeline">
+<p class="no-entries">Loading your entries...</p>
+</div>
+</div>
+</div>
+
+<script src="journal.js"></script>
+</body>
+</html>
