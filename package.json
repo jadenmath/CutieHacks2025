@@ -1,0 +1,10 @@
+{
+  "name": "cutiehacks2025",
+  "private": true,
+  "workspaces": [
+    "cutiecare-web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace cutiecare-web"
+  }
+}
