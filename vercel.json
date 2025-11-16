@@ -15,8 +15,8 @@
       }
     }
   ],
-  "installCommand": "cd cutiecare-web && npm install",
-  "buildCommand": "cd cutiecare-web && npm run build",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
   "routes": [
     {
       "src": "/api/(.*)",
