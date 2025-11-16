@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serenus - Breathe</title>
+<link rel="stylesheet" href="breathe.css">
+</head>
+<body>
+<!-- Background Video -->
+<video autoplay muted loop playsinline id="bg-video">
+<source src="assets/sakura.mp4" type="video/mp4">
+</video>
+<div id="overlay"></div>
+
+<!-- Header Navigation -->
+<header>
+<a href="index.html" class="logo">
+<img src="assets/cherry-blossom.png" class="logo-img" alt="Serenus Logo">
+Serenus
+</a>
+<nav>
+<a href="index.html">Home</a>
+<a href="journal.html">Journal</a>
+<a href="breathe.html">Breathe</a>
+</nav>
+</header>
+
+<div class="content">
+<h1>Breathe</h1>
+<p class="subtitle">A calming breathing exercise for anxiety relief</p>
+
+<div class="breathing-container">
+<div class="breath-ball" id="breathBall"></div>
+<div class="instruction" id="instruction">Click Start to Begin</div>
+</div>
+
+<div class="timer-display" id="timer">--</div>
+
+<div class="controls">
+<button id="startBtn" onclick="startBreathing()">Start</button>
+<button id="pauseBtn" onclick="pauseBreathing()" disabled>Pause</button>
+<button id="resetBtn" onclick="resetBreathing()">Reset</button>
+</div>
+
+<div class="info-box">
+<h3>4-7-8 Breathing Technique</h3>
+<p>This technique helps calm anxiety and panic attacks by activating your parasympathetic nervous system. Follow the breath ball:</p>
+<ul style="margin-top: 10px; margin-left: 20px;">
+<li><strong>Inhale</strong> for 4 seconds (ball expands)</li>
+<li><strong>Hold</strong> for 7 seconds (ball stays large)</li>
+<li><strong>Exhale</strong> for 8 seconds (ball contracts)</li>
+</ul>
+<p style="margin-top: 10px;">Repeat for several cycles until you feel calmer.</p>
+</div>
+</div>
+
+<script src="breathe.js"></script>
+</body>
+</html>
